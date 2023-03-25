@@ -1,0 +1,6 @@
+[submodule "stb"]
+	path = stb
+	url = https://github.com/nothings/stb.git
+[submodule "stl-parse"]
+	path = stl-parse
+	url = https://github.com/jdietz224/stl-parse.git

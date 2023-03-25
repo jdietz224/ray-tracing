@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(RayTracing VERSION 0.1)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDRAD_REQUIRED True)
+add_executable(RayTracer main.cc)
+add_subdirectory(stl-parse)
+target_link_libraries(RayTracer stlfuns)
+target_include_directories(RayTracer PRIVATE stb)

@@ -1,3 +1,17 @@
+#My additions
+*.out
+build/
+*.cmake
+CMakeCache.txt
+Makefile
+CMakeFiles/
+*.ppm
+*.png
+*.bmp
+*.tga
+*.jpg
+*.hdr
+
 # Prerequisites
 *.d
 
