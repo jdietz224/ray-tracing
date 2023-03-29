@@ -21,8 +21,8 @@ int main(){
    for(int j=0;j<image_height;++j){
       std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
       for(int i=0;i<image_width;++i){
-         compgeom::color pixel_color(double(i)/(image_width-1), double(j)/(image_height-1), 0.25);
-         compgeom::write_color(outfile, pixel_color);
+         raytrace::color pixel_color(double(i)/(image_width-1), double(j)/(image_height-1), 0.25);
+         raytrace::write_color(outfile, pixel_color);
 
          image[(j*image_width*n_channels) + (n_channels*i) + 0] = static_cast<char>(255.999 * pixel_color.x());
          image[(j*image_width*n_channels) + (n_channels*i) + 1] = static_cast<char>(255.999 * pixel_color.y());
@@ -32,4 +32,5 @@ int main(){
 
    auto err = stbi_write_png("image.png",image_width,image_height,n_channels,image,(image_width * n_channels));
 
+   return 0;
 }

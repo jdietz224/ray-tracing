@@ -4,6 +4,3 @@
 [submodule "stl-parse"]
 	path = stl-parse
 	url = https://github.com/jdietz224/stl-parse.git
-[submodule "compgeom"]
-	path = compgeom
-	url = git@github.com:jdietz224/compgeom.git
