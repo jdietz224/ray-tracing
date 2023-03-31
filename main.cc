@@ -8,7 +8,20 @@
 #include <iostream>
 #include <fstream>
 
+bool hit_sphere(const raytrace::point3& center, double radius, const raytrace::ray& r) {
+    raytrace::vec3 oc = r.origin() - center;
+    auto a = dot(r.direction(), r.direction());
+    auto b = 2.0 * dot(oc, r.direction());
+    auto c = dot(oc, oc) - radius*radius;
+    auto discriminant = b*b - 4*a*c;
+    return (discriminant > 0);
+}
+
 raytrace::color ray_color(const raytrace::ray& r) {
+    if (hit_sphere(raytrace::point3(0,0,-1), 0.5, r))
+    {
+        return raytrace::color(1, 0, 0);
+    }
     raytrace::vec3 unit_direction = raytrace::unit_vector(r.direction());
     auto a = 0.5*(unit_direction.y() + 1.0);
     return (1.0-a)*raytrace::color(1.0, 1.0, 1.0) + a*raytrace::color(0.5, 0.7, 1.0);
@@ -56,7 +69,7 @@ int main(){
 
    auto err = stbi_write_png("image.png",image_width,image_height,n_channels,image,(image_width * n_channels));
 
-   std::clog << "\rDone.                 \n";
+   std::clog << "\rDone                  \n";
 
    return 0;
 }
