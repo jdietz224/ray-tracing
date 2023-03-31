@@ -10,8 +10,10 @@
 #include <iostream>
 #include <fstream>
 
-double hit_sphere(const raytrace::point3& center, double radius, const raytrace::ray& r) {
-    raytrace::vec3 oc = r.origin() - center;
+using namespace raytrace;
+
+double hit_sphere(const point3& center, double radius, const ray& r) {
+    vec3 oc = r.origin() - center;
     auto a = r.direction().length_squared();
     auto half_b = dot(oc, r.direction());
     auto c = oc.length_squared() - radius*radius;
@@ -23,14 +25,14 @@ double hit_sphere(const raytrace::point3& center, double radius, const raytrace:
     }
 }
 
-raytrace::color ray_color(const raytrace::ray& r, const raytrace::hittable& world) {
-   raytrace::hit_record rec;
-   if (world.hit(r, 0, raytrace::infinity, rec)) {
-      return 0.5 * (rec.normal + raytrace::color(1,1,1));
+color ray_color(const ray& r, const hittable& world) {
+   hit_record rec;
+   if (world.hit(r, 0, infinity, rec)) {
+      return 0.5 * (rec.normal + color(1,1,1));
    }
-   raytrace::vec3 unit_direction = raytrace::unit_vector(r.direction());
+   vec3 unit_direction = unit_vector(r.direction());
    auto a = 0.5*(unit_direction.y() + 1.0);
-   return (1.0-a)*raytrace::color(1.0, 1.0, 1.0) + a*raytrace::color(0.5, 0.7, 1.0);
+   return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
 }
 
 int main(){
@@ -45,19 +47,19 @@ int main(){
    std::ofstream outfile;
 
     // World
-    raytrace::hittable_list world;
-    world.add(std::make_shared<raytrace::sphere>(raytrace::point3(0,0,-1), 0.5));
-    world.add(std::make_shared<raytrace::sphere>(raytrace::point3(0,-100.5,-1), 100));
+    hittable_list world;
+    world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
+    world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
 
    // Camera
     auto viewport_height = 2.0;
     auto viewport_width = aspect_ratio * viewport_height;
     auto focal_length = 1.0;
 
-    auto origin = raytrace::point3(0, 0, 0);
-    auto horizontal = raytrace::vec3(viewport_width, 0, 0);
-    auto vertical = raytrace::vec3(0, viewport_height, 0);
-    auto lower_left_corner = origin - horizontal/2 - vertical/2 - raytrace::vec3(0, 0, focal_length);
+    auto origin = point3(0, 0, 0);
+    auto horizontal = vec3(viewport_width, 0, 0);
+    auto vertical = vec3(0, viewport_height, 0);
+    auto lower_left_corner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focal_length);
 
    outfile.open("image.ppm");
    
@@ -68,9 +70,9 @@ int main(){
       for(int i=0;i<image_width;++i){
          auto s = double(i) / (image_width-1);
          auto t = double(j) / (image_height-1);
-         raytrace::ray r(origin, lower_left_corner + s*horizontal + (1-t)*vertical - origin);
-         raytrace::color pixel_color = ray_color(r, world);
-         raytrace::write_color(outfile, pixel_color);
+         ray r(origin, lower_left_corner + s*horizontal + (1-t)*vertical - origin);
+         color pixel_color = ray_color(r, world);
+         write_color(outfile, pixel_color);
 
          image[(j*image_width*n_channels) + (n_channels*i) + 0] = static_cast<char>(255.999 * pixel_color.x());
          image[(j*image_width*n_channels) + (n_channels*i) + 1] = static_cast<char>(255.999 * pixel_color.y());
