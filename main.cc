@@ -1,9 +1,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#include "rtweekend.h"
+
 #include "color.h"
-#include "ray.h"
-#include "vec3.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
 #include <iostream>
 #include <fstream>
@@ -21,27 +23,31 @@ double hit_sphere(const raytrace::point3& center, double radius, const raytrace:
     }
 }
 
-raytrace::color ray_color(const raytrace::ray& r) {
-    auto t = hit_sphere(raytrace::point3(0,0,-1), 0.5, r);
-    if (t > 0.0) {
-        raytrace::vec3 N = raytrace::unit_vector(r.at(t) - raytrace::vec3(0,0,-1));
-        return 0.5*raytrace::color(N.x()+1, N.y()+1, N.z()+1);
-    }
-    raytrace::vec3 unit_direction = raytrace::unit_vector(r.direction());
-    auto a = 0.5*(unit_direction.y() + 1.0);
-    return (1.0-a)*raytrace::color(1.0, 1.0, 1.0) + a*raytrace::color(0.5, 0.7, 1.0);
+raytrace::color ray_color(const raytrace::ray& r, const raytrace::hittable& world) {
+   raytrace::hit_record rec;
+   if (world.hit(r, 0, raytrace::infinity, rec)) {
+      return 0.5 * (rec.normal + raytrace::color(1,1,1));
+   }
+   raytrace::vec3 unit_direction = raytrace::unit_vector(r.direction());
+   auto a = 0.5*(unit_direction.y() + 1.0);
+   return (1.0-a)*raytrace::color(1.0, 1.0, 1.0) + a*raytrace::color(0.5, 0.7, 1.0);
 }
 
 int main(){
 
    // Image
    constexpr auto aspect_ratio = 16.0/9.0;
-   constexpr int image_width = 400;
+   constexpr int image_width = 1920;
    constexpr int image_height = static_cast<int>(image_width / aspect_ratio);
    constexpr int n_channels = 3;
 
    char image[image_width * image_height * n_channels];
    std::ofstream outfile;
+
+    // World
+    raytrace::hittable_list world;
+    world.add(std::make_shared<raytrace::sphere>(raytrace::point3(0,0,-1), 0.5));
+    world.add(std::make_shared<raytrace::sphere>(raytrace::point3(0,-100.5,-1), 100));
 
    // Camera
     auto viewport_height = 2.0;
@@ -63,7 +69,7 @@ int main(){
          auto s = double(i) / (image_width-1);
          auto t = double(j) / (image_height-1);
          raytrace::ray r(origin, lower_left_corner + s*horizontal + (1-t)*vertical - origin);
-         raytrace::color pixel_color = ray_color(r);
+         raytrace::color pixel_color = ray_color(r, world);
          raytrace::write_color(outfile, pixel_color);
 
          image[(j*image_width*n_channels) + (n_channels*i) + 0] = static_cast<char>(255.999 * pixel_color.x());
