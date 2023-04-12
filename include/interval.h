@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rtweekend.h"
+
 namespace raytrace {
     class interval {
     public:
