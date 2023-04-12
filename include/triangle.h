@@ -12,7 +12,7 @@ namespace raytrace
         triangle(std::array<point3,3> points) : vertices(points) {};
         triangle(point3 v1, point3 v2, point3 v3) : vertices({v1, v2, v3}) {};
 
-        bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
 
             constexpr double SMALL_NUM = 1e-8;
 
@@ -35,8 +35,8 @@ namespace raytrace
 
             auto d = a / b;
 
-            // Ray points away from the triangle, so no intersect
-            if (d < 0) return false;
+            // If the intersect point is outside the viable interval, no hit
+            if ((d < ray_t.min) || (d > ray_t.max)) return false;
 
             // Get the intersect point of ray with triangle plane
             auto I = r.orig + d*r.dir;
