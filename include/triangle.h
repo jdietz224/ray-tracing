@@ -58,6 +58,9 @@ namespace raytrace
             auto t = ((uv * wu) - (uu * wv)) / D;
             if ((t < 0.0) || (s + t) > 1.0) return false;
 
+            rec.t = d;
+            rec.p = r.at(rec.t);
+            rec.set_face_normal(r, unit_vector(n));
             return true;
         }
     public:
