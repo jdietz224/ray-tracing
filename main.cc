@@ -7,9 +7,14 @@
 #include "color.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "triangle.h"
 
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
+
+#include <stlfuns.h>
 
 using namespace raytrace;
 
@@ -36,23 +41,44 @@ color ray_color(const ray& r, const hittable& world) {
    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
 }
 
+std::vector<triangle> read_stl() {
+   const std::string stl_filename = "../stl-parse/test-files/femur_binary.stl";
+
+   auto S = Stl::readStlFileBinary(stl_filename);
+
+   std::vector<triangle> stl_tris(S.n_triangles);
+
+   for (uint32_t i = 0; i < S.n_triangles; ++i) {
+      auto v0 = vec3(S.tris[i].vertices[0].P[0], S.tris[i].vertices[0].P[1], S.tris[i].vertices[0].P[2]);
+      auto v1 = vec3(S.tris[i].vertices[1].P[0], S.tris[i].vertices[1].P[1], S.tris[i].vertices[1].P[2]);
+      auto v2 = vec3(S.tris[i].vertices[2].P[0], S.tris[i].vertices[2].P[1], S.tris[i].vertices[2].P[2]);
+
+      stl_tris[i] = triangle(v0,v1,v2);
+   }
+
+   std::cout << "# of triangles: " << stl_tris.size() << '\n';
+   return stl_tris;
+}
+
 int main(){
 
    // Image
    constexpr auto aspect_ratio = 16.0/9.0;
-   constexpr int image_width = 780;
+   constexpr int image_width = 400;
    constexpr int image_height = static_cast<int>(image_width / aspect_ratio);
    constexpr int n_channels = 3;
 
-   constexpr int samples_per_pixel = 100;
+   constexpr int samples_per_pixel = 25;
 
    char image[image_width * image_height * n_channels];
    std::ofstream outfile;
 
-    // World
-    hittable_list world;
-    world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
+   // World
+   hittable_list world;
+   world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
+   world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
+
+   auto tri_vec = read_stl();
 
    // Camera
    camera cam;
