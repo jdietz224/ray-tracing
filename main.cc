@@ -41,22 +41,28 @@ color ray_color(const ray& r, const hittable& world) {
    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
 }
 
-std::vector<triangle> read_stl() {
+std::vector<std::shared_ptr<triangle>> read_stl() {
    const std::string stl_filename = "../stl-parse/test-files/femur_binary.stl";
 
    auto S = Stl::readStlFileBinary(stl_filename);
 
-   std::vector<triangle> stl_tris(S.n_triangles);
+   std::vector<std::shared_ptr<triangle>> stl_tris(S.n_triangles);
+   
+   constexpr double scale = 1.0;
+   const vec3 offset = vec3(0.0, 0.0, -1.5);
 
    for (uint32_t i = 0; i < S.n_triangles; ++i) {
-      auto v0 = vec3(S.tris[i].vertices[0].P[0], S.tris[i].vertices[0].P[1], S.tris[i].vertices[0].P[2]);
-      auto v1 = vec3(S.tris[i].vertices[1].P[0], S.tris[i].vertices[1].P[1], S.tris[i].vertices[1].P[2]);
-      auto v2 = vec3(S.tris[i].vertices[2].P[0], S.tris[i].vertices[2].P[1], S.tris[i].vertices[2].P[2]);
+      auto v0 = scale * (vec3(S.tris[i].vertices[0].P[0], S.tris[i].vertices[0].P[1], S.tris[i].vertices[0].P[2])
+         + offset);
+      auto v1 = scale * (vec3(S.tris[i].vertices[1].P[0], S.tris[i].vertices[1].P[1], S.tris[i].vertices[1].P[2])
+         + offset);
+      auto v2 = scale * (vec3(S.tris[i].vertices[2].P[0], S.tris[i].vertices[2].P[1], S.tris[i].vertices[2].P[2])
+         + offset);
 
-      stl_tris[i] = triangle(v0,v1,v2);
+      stl_tris[i] = std::make_shared<triangle>(v0,v1,v2);
    }
 
-   std::cout << "# of triangles: " << stl_tris.size() << '\n';
+   std::cout << "# of triangles in .stl file: " << stl_tris.size() << '\n';
    return stl_tris;
 }
 
@@ -64,21 +70,27 @@ int main(){
 
    // Image
    constexpr auto aspect_ratio = 16.0/9.0;
-   constexpr int image_width = 400;
+   constexpr int image_width = 100;
    constexpr int image_height = static_cast<int>(image_width / aspect_ratio);
    constexpr int n_channels = 3;
 
-   constexpr int samples_per_pixel = 25;
+   constexpr int samples_per_pixel = 1;
 
    char image[image_width * image_height * n_channels];
    std::ofstream outfile;
 
    // World
    hittable_list world;
-   world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-   world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
+   // world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
+   // world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
 
    auto tri_vec = read_stl();
+
+#ifdef USE_FEMUR
+   for (auto &t : tri_vec) {
+      world.add(t);
+   }
+#endif
 
    // Camera
    camera cam;
