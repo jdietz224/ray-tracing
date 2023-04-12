@@ -61,8 +61,7 @@ std::vector<std::shared_ptr<triangle>> read_stl() {
 
       stl_tris[i] = std::make_shared<triangle>(v0,v1,v2);
    }
-
-   std::cout << "# of triangles in .stl file: " << stl_tris.size() << '\n';
+   
    return stl_tris;
 }
 
@@ -70,23 +69,22 @@ int main(){
 
    // Image
    constexpr auto aspect_ratio = 16.0/9.0;
-   constexpr int image_width = 100;
+   constexpr int image_width = 400;
    constexpr int image_height = static_cast<int>(image_width / aspect_ratio);
    constexpr int n_channels = 3;
 
-   constexpr int samples_per_pixel = 1;
+   constexpr int samples_per_pixel = 100;
 
    char image[image_width * image_height * n_channels];
    std::ofstream outfile;
 
    // World
    hittable_list world;
-   // world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-   // world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
-
-   auto tri_vec = read_stl();
+   world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
+   world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
 
 #ifdef USE_FEMUR
+   auto tri_vec = read_stl();
    for (auto &t : tri_vec) {
       world.add(t);
    }
