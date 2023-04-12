@@ -3,6 +3,7 @@
 
 #include "rtweekend.h"
 
+#include "camera.h"
 #include "color.h"
 #include "hittable_list.h"
 #include "sphere.h"
@@ -39,9 +40,11 @@ int main(){
 
    // Image
    constexpr auto aspect_ratio = 16.0/9.0;
-   constexpr int image_width = 1920;
+   constexpr int image_width = 780;
    constexpr int image_height = static_cast<int>(image_width / aspect_ratio);
    constexpr int n_channels = 3;
+
+   constexpr int samples_per_pixel = 100;
 
    char image[image_width * image_height * n_channels];
    std::ofstream outfile;
@@ -52,14 +55,7 @@ int main(){
     world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
 
    // Camera
-    auto viewport_height = 2.0;
-    auto viewport_width = aspect_ratio * viewport_height;
-    auto focal_length = 1.0;
-
-    auto origin = point3(0, 0, 0);
-    auto horizontal = vec3(viewport_width, 0, 0);
-    auto vertical = vec3(0, viewport_height, 0);
-    auto lower_left_corner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focal_length);
+   camera cam;
 
    outfile.open("image.ppm");
    
@@ -67,21 +63,28 @@ int main(){
 
    for(int j=0;j<image_height;++j){
       std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-      for(int i=0;i<image_width;++i){
-         auto s = double(i) / (image_width-1);
-         auto t = double(j) / (image_height-1);
-         ray r(origin, lower_left_corner + s*horizontal + (1-t)*vertical - origin);
-         color pixel_color = ray_color(r, world);
-         write_color(outfile, pixel_color);
+      auto t = (j + random_double()) / (image_height - 1);
 
-         image[(j*image_width*n_channels) + (n_channels*i) + 0] = static_cast<char>(255.999 * pixel_color.x());
-         image[(j*image_width*n_channels) + (n_channels*i) + 1] = static_cast<char>(255.999 * pixel_color.y());
-         image[(j*image_width*n_channels) + (n_channels*i) + 2] = static_cast<char>(255.999 * pixel_color.z());
+      for(int i=0;i<image_width;++i){
+         color pixel_color(0,0,0);
+
+         for (int sample = 0; sample < samples_per_pixel; ++sample) {
+            auto s = (i + random_double()) / (image_width - 1);
+            ray r = cam.get_ray(s,t);
+            pixel_color += ray_color(r,world);
+         }
+
+         write_color(outfile, pixel_color, samples_per_pixel);
+
+         image[(j*image_width*n_channels) + (n_channels*i) + 0] = static_cast<char>(255.999 * (pixel_color.x() / samples_per_pixel));
+         image[(j*image_width*n_channels) + (n_channels*i) + 1] = static_cast<char>(255.999 * (pixel_color.y() / samples_per_pixel));
+         image[(j*image_width*n_channels) + (n_channels*i) + 2] = static_cast<char>(255.999 * (pixel_color.z() / samples_per_pixel));
       }
    }
 
    auto err = stbi_write_png("image.png",image_width,image_height,n_channels,image,(image_width * n_channels));
 
+   outfile.close();
    std::clog << "\rDone                  \n";
 
    return 0;
